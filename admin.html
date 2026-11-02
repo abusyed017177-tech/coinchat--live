@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinChat - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #020617; color: #f8fafc; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        <!-- HEADER -->
+        <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center border border-amber-500/20 text-xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-100">অ্যাডমিন ড্যাশবোর্ড</h1>
+                    <p class="text-xs text-slate-400">কয়েন রিচার্জ ও ক্যাশ-আউট ম্যানেজমেন্ট</p>
+                </div>
+            </div>
+            <a href="index.html" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> অ্যাপে ফিরে যান
+            </a>
+        </div>
+
+        <!-- PAYMENT NUMBERS CONFIGURATION -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-lg font-bold text-amber-400 flex items-center space-x-2">
+                <i class="fa-solid fa-wallet"></i>
+                <span>পেমেন্ট নম্বর সেটআপ করুন</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="text-xs text-slate-400 font-semibold">বিকাশ নম্বর:</label>
+                    <input type="text" id="adminBkash" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-semibold">নগদ নম্বর:</label>
+                    <input type="text" id="adminNagad" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-semibold">রকেট নম্বর:</label>
+                    <input type="text" id="adminRocket" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+            <button onclick="saveAdminNumbers()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-sm transition shadow-lg">
+                নম্বর সেভ করুন
+            </button>
+        </div>
+
+        <!-- RECHARGE REQUESTS -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-lg font-bold text-amber-400 flex items-center space-x-2">
+                <i class="fa-solid fa-coins"></i>
+                <span>কয়েন রিচার্জ রিকোয়েস্টসমূহ (TrxID)</span>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                            <th class="p-3">আইডি</th>
+                            <th class="p-3">TrxID</th>
+                            <th class="p-3">পরিমাণ</th>
+                            <th class="p-3">অবস্থা</th>
+                            <th class="p-3 text-right">কার্যক্রম</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rechargeTableBody" class="divide-y divide-slate-800/50">
+                        <!-- এখানে জাভাস্ক্রিপ্ট দিয়ে ডাটা লোড হবে -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CASHOUT REQUESTS (নতুন ক্যাশ-আউট টেবিল) -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+            <h2 class="text-lg font-bold text-emerald-400 flex items-center space-x-2">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+                <span>ক্যাশ-আউট (কয়েন বিক্রি) রিকোয়েস্টসমূহ</span>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                            <th class="p-3">ইউজার</th>
+                            <th class="p-3">নম্বর</th>
+                            <th class="p-3">কয়েন</th>
+                            <th class="p-3">অবস্থা</th>
+                            <th class="p-3 text-right">কার্যক্রম</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cashoutTableBody" class="divide-y divide-slate-800/50">
+                        <!-- ক্যাশ-আউট ডাটা এখানে লোড হবে -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        window.onload = () => {
+            loadAdminNumbers();
+            loadRechargeRequests();
+            loadCashoutRequests();
+        };
+
+        function loadAdminNumbers() {
+            let numbers = JSON.parse(localStorage.getItem('admin_payment_numbers')) || { bkash: '01711002233', nagad: '01811002233', rocket: '01911002233' };
+            document.getElementById('adminBkash').value = numbers.bkash;
+            document.getElementById('adminNagad').value = numbers.nagad;
+            document.getElementById('adminRocket').value = numbers.rocket;
+        }
+
+        function saveAdminNumbers() {
+            let numbers = {
+                bkash: document.getElementById('adminBkash').value.trim(),
+                nagad: document.getElementById('adminNagad').value.trim(),
+                rocket: document.getElementById('adminRocket').value.trim()
+            };
+            localStorage.setItem('admin_payment_numbers', JSON.stringify(numbers));
+            alert('পেমেন্ট নম্বর সফলভাবে আপডেট করা হয়েছে!');
+        }
+
+        function loadRechargeRequests() {
+            let requests = JSON.parse(localStorage.getItem('admin_payment_requests')) || [];
+            let tbody = document.getElementById('rechargeTableBody');
+            
+            if(requests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 text-xs">কোনো রিচার্জ রিকোয়েস্ট নেই</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = requests.map((req, index) => `
+                <tr class="hover:bg-slate-800/30">
+                    <td class="p-3 font-mono text-xs">${req.id}</td>
+                    <td class="p-3 font-mono text-amber-400 font-bold">${req.trx}</td>
+                    <td class="p-3">${req.amount} কয়েন</td>
+                    <td class="p-3"><span class="px-2 py-1 bg-amber-500/10 text-amber-400 rounded text-xs border border-amber-500/20">${req.status}</span></td>
+                    <td class="p-3 text-right space-x-2">
+                        <button onclick="approveRecharge(${index})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">অ্যাপ্রুভ</button>
+                        <button onclick="deleteRecharge(${index})" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold">মুছে ফেলুন</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function approveRecharge(index) {
+            let requests = JSON.parse(localStorage.getItem('admin_payment_requests')) || [];
+            let req = requests[index];
+            
+            // ইউজারের কয়েন বাড়িয়ে দেওয়া
+            let currentCoins = parseInt(localStorage.getItem('user_coins')) || 0;
+            currentCoins += req.amount;
+            localStorage.setItem('user_coins', currentCoins);
+
+            requests.splice(index, 1);
+            localStorage.setItem('admin_payment_requests', JSON.stringify(requests));
+            
+            alert('পেমেন্ট অ্যাপ্রুভ করা হয়েছে এবং ইউজারের অ্যাকাউন্টে কয়েন যোগ হয়েছে!');
+            loadRechargeRequests();
+        }
+
+        function deleteRecharge(index) {
+            let requests = JSON.parse(localStorage.getItem('admin_payment_requests')) || [];
+            requests.splice(index, 1);
+            localStorage.setItem('admin_payment_requests', JSON.stringify(requests));
+            loadRechargeRequests();
+        }
+
+        // ক্যাশ-আউট রিকোয়েস্ট লোড ও ম্যানেজ করার ফাংশন
+        function loadCashoutRequests() {
+            let requests = JSON.parse(localStorage.getItem('admin_cashout_requests')) || [];
+            let tbody = document.getElementById('cashoutTableBody');
+
+            if(requests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 text-xs">কোনো ক্যাশ-আউট রিকোয়েস্ট নেই</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = requests.map((req, index) => `
+                <tr class="hover:bg-slate-800/30">
+                    <td class="p-3 font-semibold text-slate-200">${req.name}</td>
+                    <td class="p-3 font-mono text-emerald-400">${req.phone}</td>
+                    <td class="p-3 font-bold text-amber-400">${req.coins} কয়েন</td>
+                    <td class="p-3"><span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded text-xs border border-emerald-500/20">${req.status}</span></td>
+                    <td class="p-3 text-right space-x-2">
+                        <button onclick="completeCashout(${index})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold">টাকা পরিশোধ</button>
+                        <button onclick="cancelCashout(${index})" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold">বাতিল</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function completeCashout(index) {
+            let requests = JSON.parse(localStorage.getItem('admin_cashout_requests')) || [];
+            requests.splice(index, 1);
+            localStorage.setItem('admin_cashout_requests', JSON.stringify(requests));
+            alert('ক্যাশ-আউট সফলভাবে সম্পন্ন হিসেবে মার্ক করা হয়েছে!');
+            loadCashoutRequests();
+        }
+
+        function cancelCashout(index) {
+            let requests = JSON.parse(localStorage.getItem('admin_cashout_requests')) || [];
+            let req = requests[index];
+
+            // রিকোয়েস্ট বাতিল হলে ইউজারের কেটে নেওয়া কয়েন ফিরিয়ে দেওয়া
+            let currentCoins = parseInt(localStorage.getItem('user_coins')) || 0;
+            currentCoins += req.coins;
+            localStorage.setItem('user_coins', currentCoins);
+
+            requests.splice(index, 1);
+            localStorage.setItem('admin_cashout_requests', JSON.stringify(requests));
+            alert('ক্যাশ-আউট রিকোয়েস্ট বাতিল করা হয়েছে এবং ইউজারের কয়েন ফেরত দেওয়া হয়েছে!');
+            loadCashoutRequests();
+        }
+    </script>
+</body>
+</html>
