@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinChat - Live Messaging & Coin Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #020617; color: #f8fafc; margin: 0; padding: 0; }
+        #authScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #020617; display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+        .auth-hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- ================= AUTHENTICATION MODAL ================= -->
+    <div id="authScreen" class="auth-hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-500/20 text-2xl">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h2 id="authTitle" class="text-2xl font-bold text-slate-100">অ্যাকাউন্ট তৈরি করুন</h2>
+                <p id="authSubtitle" class="text-xs text-slate-400 mt-1">CoinChat-এ যুক্ত হতে আপনার তথ্য দিন</p>
+            </div>
+            <div class="space-y-4">
+                <div id="nameFieldContainer">
+                    <label class="text-xs text-slate-400 font-semibold">আপনার নাম:</label>
+                    <input type="text" id="regName" placeholder="পূর্ণ নাম লিখুন" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-semibold">মোবাইল নম্বর বা ইমেইল:</label>
+                    <input type="text" id="regPhone" placeholder="নম্বর বা ইমেইল দিন" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <button id="authBtn" onclick="handleAuth()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition shadow-lg">
+                    রেজিস্ট্রেশন করুন
+                </button>
+                <div class="text-center pt-2">
+                    <button onclick="toggleAuthMode()" id="switchAuthModeBtn" class="text-xs text-amber-400 hover:underline">
+                        আগেই অ্যাকাউন্ট আছে? লগইন করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MAIN APP INTERFACE ================= -->
+    <div class="flex flex-col md:flex-row w-full h-screen overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside class="w-full md:w-80 lg:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full z-10">
+            <div class="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img id="myProfilePic" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover border border-amber-500/50">
+                    <div>
+                        <h1 id="myProfileName" class="font-bold text-sm text-amber-400">ইউজার</h1>
+                        <p class="text-[10px] text-emerald-400">অনলাইন</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="balanceBtn" class="flex items-center space-x-1 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-full hover:bg-amber-500/20 transition cursor-pointer">
+                        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+                        <span id="userBalance" class="font-bold text-amber-400 text-xs">৫০</span>
+                    </button>
+                    <button onclick="logout()" class="p-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-400 rounded-lg transition" title="লগআউট">
+                        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- সহজে রিচার্জ ও ক্যাশ-আউট বাটন (আইডি যুক্ত করা হয়েছে) -->
+            <div class="p-3 grid grid-cols-2 gap-2 bg-slate-900 border-b border-slate-800">
+                <button id="rechargeBtn" class="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-lg transition flex items-center justify-center space-x-1 shadow cursor-pointer">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>কয়েন কিনুন</span>
+                </button>
+                <button id="cashoutBtn" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition flex items-center justify-center space-x-1 shadow cursor-pointer">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>ক্যাশ-আউট</span>
+                </button>
+            </div>
+
+            <div id="chatList" class="flex-1 overflow-y-auto divide-y divide-slate-800/50"></div>
+
+            <div class="p-3 bg-slate-950/90 border-t border-slate-800 text-xs text-slate-400 flex justify-between items-center px-4">
+                <div class="flex space-x-3 text-[11px]">
+                    <span><b class="text-amber-400">মিডিয়া:</b> ১ কয়েন</span>
+                </div>
+                <a href="admin.html" target="_blank" class="text-slate-500 hover:text-amber-400 text-xs flex items-center space-x-1 transition">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>অ্যাডমিন</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CHAT AREA -->
+        <main class="flex-1 flex flex-col h-full bg-slate-950 relative">
+            <div class="p-4 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center shadow-md">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <img id="activeAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" class="w-10 h-10 rounded-full object-cover border border-amber-500/50">
+                        <div class="w-3 h-3 bg-emerald-500 rounded-full absolute bottom-0 right-0 border-2 border-slate-900"></div>
+                    </div>
+                    <div>
+                        <h2 id="activeChatName" class="font-bold text-slate-100 text-sm">CoinChat হেল্পলাইন</h2>
+                        <p id="activeStatus" class="text-[11px] text-emerald-400">অনলাইন | ফ্রি সার্ভিস</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="initiateCall()" class="p-2.5 bg-slate-800 hover:bg-amber-600/20 hover:text-amber-400 text-slate-300 rounded-lg transition" title="ভিডিও কল">
+                        <i class="fa-solid fa-phone"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
+
+            <div class="p-4 bg-slate-900 border-t border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <label class="p-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg cursor-pointer transition relative" title="ছবি বা ভিডিও দিন">
+                        <i class="fa-solid fa-paperclip"></i>
+                        <input type="file" id="mediaInput" accept="image/*,video/*" class="hidden" onchange="sendMediaFile(event)">
+                    </label>
+                    <input type="text" id="messageInput" placeholder="মেসেজ লিখুন..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-amber-500" onkeypress="handleKeyPress(event)">
+                    <button onclick="sendTextMessage()" class="p-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition shadow-lg">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- RECHARGE MODAL -->
+    <div id="rechargeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <button id="closeRechargeBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer text-xl p-2">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-2 border border-amber-500/20">
+                    <i class="fa-solid fa-coins text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-100">কয়েন রিচার্জ করুন</h3>
+                <p class="text-xs text-slate-400 mt-1">টাকা পাঠিয়ে TrxID দিন</p>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl mb-4 border border-slate-800 text-sm space-y-2">
+                <p class="text-xs text-amber-400 font-semibold mb-1">অ্যাডমিনের নম্বরসমূহ:</p>
+                <div class="flex justify-between items-center"><span class="text-pink-500">বিকাশ:</span><span id="displayBkash" class="font-mono text-slate-200">01711002233</span></div>
+                <div class="flex justify-between items-center"><span class="text-orange-500">নগদ:</span><span id="displayNagad" class="font-mono text-slate-200">01811002233</span></div>
+            </div>
+            <div class="space-y-3">
+                <input type="text" id="trxIdInput" placeholder="Transaction ID (TrxID) লিখুন" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                <button id="submitPaymentBtn" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition shadow-lg cursor-pointer">
+                    পেমেন্ট রিকোয়েস্ট পাঠান
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CASHOUT MODAL -->
+    <div id="cashoutModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <button id="closeCashoutBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer text-xl p-2">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-2 border border-emerald-500/20">
+                    <i class="fa-solid fa-wallet text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-100">ক্যাশ-আউট (কয়েন বিক্রি)</h3>
+                <p class="text-xs text-slate-400 mt-1">কয়েন বিক্রি করে টাকা নিন</p>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 font-semibold">কয়েনের পরিমাণ:</label>
+                    <input type="number" id="cashoutCoins" placeholder="যেমন: ৫০" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-semibold">আপনার বিকাশ/নগদ নম্বর:</label>
+                    <input type="text" id="cashoutPhone" placeholder="নম্বর দিন" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+                <button id="submitCashoutBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-lg mt-2 cursor-pointer">
+                    ক্যাশ-আউট রিকোয়েস্ট পাঠান
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+        let isLoginMode = false;
+
+        window.onload = () => {
+            checkAuthStatus();
+            updateBalance();
+            updateNumbers();
+            renderChats();
+            loadMsgs();
+            initEventListeners();
+        };
+
+        // মোবাইল টাচ ও ক্লিক ঠিক রাখার জন্য ইভেন্ট লিসেনার বাইন্ড করা হলো
+        function initEventListeners() {
+            document.getElementById('rechargeBtn').addEventListener('click', openRechargeModal);
+            document.getElementById('balanceBtn').addEventListener('click', openRechargeModal);
+            document.getElementById('cashoutBtn').addEventListener('click', openCashoutModal);
+            document.getElementById('closeRechargeBtn').addEventListener('click', closeRechargeModal);
+            document.getElementById('closeCashoutBtn').addEventListener('click', closeCashoutModal);
+            document.getElementById('submitPaymentBtn').addEventListener('click', submitPayment);
+            document.getElementById('submitCashoutBtn').addEventListener('click', submitCashout);
+        }
+
+        function checkAuthStatus() {
+            let currentUser = localStorage.getItem('current_logged_user');
+            const authScreen = document.getElementById('authScreen');
+            if (!currentUser) {
+                authScreen.classList.remove('auth-hidden');
+            } else {
+                authScreen.classList.add('auth-hidden');
+                let userData = JSON.parse(currentUser);
+                document.getElementById('myProfileName').innerText = userData.name;
+            }
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const btn = document.getElementById('authBtn');
+            const switchBtn = document.getElementById('switchAuthModeBtn');
+            const nameField = document.getElementById('nameFieldContainer');
+
+            if (isLoginMode) {
+                title.innerText = 'লগইন করুন';
+                subtitle.innerText = 'আপনার অ্যাকাউন্টে প্রবেশ করুন';
+                btn.innerText = 'লগইন';
+                switchBtn.innerText = 'অ্যাকাউন্ট নেই? রেজিস্ট্রেশন করুন';
+                nameField.style.display = 'none';
+            } else {
+                title.innerText = 'অ্যাকাউন্ট তৈরি করুন';
+                subtitle.innerText = 'CoinChat-এ যুক্ত হতে আপনার তথ্য দিন';
+                btn.innerText = 'রেজিস্ট্রেশন করুন';
+                switchBtn.innerText = 'আগেই অ্যাকাউন্ট আছে? লগইন করুন';
+                nameField.style.display = 'block';
+            }
+        }
+
+        function handleAuth() {
+            let phone = document.getElementById('regPhone').value.trim();
+            if(!phone) { alert('নম্বর বা ইমেইল লিখুন!'); return; }
+
+            if (!isLoginMode) {
+                let name = document.getElementById('regName').value.trim();
+                if(!name) { alert('নাম লিখুন!'); return; }
+
+                let userData = { name: name, phone: phone };
+                localStorage.setItem('current_logged_user', JSON.stringify(userData));
+                if(!localStorage.getItem('user_coins')) {
+                    localStorage.setItem('user_coins', 50);
+                }
+                alert('সফলভাবে রেজিস্ট্রেশন সম্পন্ন হয়েছে!');
+            } else {
+                let userData = { name: 'ইউজার', phone: phone };
+                localStorage.setItem('current_logged_user', JSON.stringify(userData));
+                alert('সফলভাবে লগইন হয়েছে!');
+            }
+            checkAuthStatus();
+            location.reload();
+        }
+
+        function logout() {
+            if(confirm('লগআউট করতে চান?')) {
+                localStorage.removeItem('current_logged_user');
+                checkAuthStatus();
+                location.reload();
+            }
+        }
+
+        let balance = parseInt(localStorage.getItem('user_coins')) || 50;
+        let activeChatId = 'support';
+
+        const chats = [
+            { id: 'support', name: 'CoinChat হেল্পলাইন', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop', status: 'ফ্রি সার্ভিস' }
+        ];
+
+        let messages = JSON.parse(localStorage.getItem('app_messages')) || {
+            'support': [{ sender: 'them', text: 'CoinChat-এ স্বাগতম! ৫০ কয়েন ফ্রি দেওয়া হয়েছে।', time: '10:00 AM' }]
+        };
+
+        function updateBalance() {
+            balance = parseInt(localStorage.getItem('user_coins')) || 50;
+            document.getElementById('userBalance').innerText = balance;
+        }
+
+        function updateNumbers() {
+            let numbers = JSON.parse(localStorage.getItem('admin_payment_numbers')) || { bkash: '01711002233', nagad: '01811002233' };
+            document.getElementById('displayBkash').innerText = numbers.bkash;
+            document.getElementById('displayNagad').innerText = numbers.nagad;
+        }
+
+        function renderChats() {
+            document.getElementById('chatList').innerHTML = chats.map(c => `
+                <div onclick="activeChatId='${c.id}'; renderChats(); loadMsgs();" class="p-4 flex items-center space-x-3 cursor-pointer transition ${activeChatId === c.id ? 'bg-slate-800/80 border-l-4 border-amber-500' : 'hover:bg-slate-800/50'}">
+                    <img src="${c.avatar}" class="w-12 h-12 rounded-full object-cover">
+                    <div><h4 class="font-bold text-sm text-slate-200">${c.name}</h4><p class="text-xs text-slate-400">${c.status}</p></div>
+                </div>
+            `).join('');
+        }
+
+        function loadMsgs() {
+            const container = document.getElementById('messagesContainer');
+            const list = messages[activeChatId] || [];
+            container.innerHTML = list.map(m => `
+                <div class="flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-[75%] ${m.sender === 'me' ? 'bg-amber-600 text-slate-950 font-medium' : 'bg-slate-800 text-slate-200'} p-3 rounded-2xl shadow">
+                        ${m.media ? `<img src="${m.media}" class="rounded-lg mb-2 max-h-60">` : ''}
+                        ${m.text ? `<p class="text-sm">${m.text}</p>` : ''}
+                        <span class="text-[10px] opacity-70 block text-right mt-1">${m.time}</span>
+                    </div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendTextMessage() {
+            const input = document.getElementById('messageInput');
+            if(!input.value.trim()) return;
+            if(!messages[activeChatId]) messages[activeChatId] = [];
+            messages[activeChatId].push({ sender: 'me', text: input.value, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+            localStorage.setItem('app_messages', JSON.stringify(messages));
+            input.value = '';
+            loadMsgs();
+        }
+
+        function sendMediaFile(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            if(balance < 1) { alert('অপর্যাপ্ত কয়েন! মিডিয়া পাঠাতে ১ কয়েন লাগবে।'); return; }
+            
+            balance -= 1; 
+            localStorage.setItem('user_coins', balance);
+            updateBalance();
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                if(!messages[activeChatId]) messages[activeChatId] = [];
+                messages[activeChatId].push({ sender: 'me', media: evt.target.result, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+                localStorage.setItem('app_messages', JSON.stringify(messages));
+                loadMsgs();
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // রিচার্জ মডাল
+        function openRechargeModal() { 
+            updateNumbers();
+            document.getElementById('rechargeModal').classList.remove('hidden'); 
+        }
+        function closeRechargeModal() { document.getElementById('rechargeModal').classList.add('hidden'); }
+
+        function submitPayment() {
+            const trx = document.getElementById('trxIdInput').value.trim();
+            if(!trx) { alert('TrxID লিখুন'); return; }
+            let requests = JSON.parse(localStorage.getItem('admin_payment_requests')) || [];
+            requests.push({ id: Date.now(), trx: trx, amount: 50, status: 'Pending' });
+            localStorage.setItem('admin_payment_requests', JSON.stringify(requests));
+            alert('পেমেন্ট রিকোয়েস্ট অ্যাডমিনের কাছে পাঠানো হয়েছে!');
+            document.getElementById('trxIdInput').value = '';
+            closeRechargeModal();
+        }
+
+        // ক্যাশ-আউট মডাল
+        function openCashoutModal() { document.getElementById('cashoutModal').classList.remove('hidden'); }
+        function closeCashoutModal() { document.getElementById('cashoutModal').classList.add('hidden'); }
+
+        function submitCashout() {
+            let coins = parseInt(document.getElementById('cashoutCoins').value);
+            let phone = document.getElementById('cashoutPhone').value.trim();
+            let currentCoins = parseInt(localStorage.getItem('user_coins')) || 50;
+
+            if(!coins || coins <= 0) { alert('সঠিক কয়েন দিন!'); return; }
+            if(!phone) { alert('নম্বর দিন!'); return; }
+            if(coins > currentCoins) { alert('পর্যাপ্ত কয়েন নেই!'); return; }
+
+            currentCoins -= coins;
+            localStorage.setItem('user_coins', currentCoins);
+            updateBalance();
+
+            let cashouts = JSON.parse(localStorage.getItem('admin_cashout_requests')) || [];
+            let currentUser = JSON.parse(localStorage.getItem('current_logged_user')) || { name: 'ইউজার' };
+            cashouts.push({ id: Date.now(), name: currentUser.name, phone: phone, coins: coins, status: 'Pending' });
+            localStorage.setItem('admin_cashout_requests', JSON.stringify(cashouts));
+
+            alert('ক্যাশ-আউট রিকোয়েস্ট পাঠানো হয়েছে!');
+            document.getElementById('cashoutCoins').value = '';
+            document.getElementById('cashoutPhone').value = '';
+            closeCashoutModal();
+        }
+
+        function initiateCall() {
+            alert('ভিডিও কল শুরু হচ্ছে...');
+        }
+
+        function handleKeyPress(e) { if(e.key === 'Enter') sendTextMessage(); }
+    </script>
+</body>
+</html>
